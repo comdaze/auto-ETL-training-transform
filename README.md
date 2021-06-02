@@ -3,7 +3,7 @@
 
 ## 架构图 
 
-[Image: image.png]
+[Image: image (1).png]
 ## 1.Glue的设置
 
 ### 添加连接 
