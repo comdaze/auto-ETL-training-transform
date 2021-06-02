@@ -3,7 +3,7 @@
 
 ## 架构图 
 
-[Image: image (1).png]
+![架构图](https://github.com/comdaze/auto-ETL-training-transform/blob/74c35722e5733a09e6a7e16927d06a44d99abeaa/image%20(1).png)
 ## 1.Glue的设置
 
 ### 添加连接 
