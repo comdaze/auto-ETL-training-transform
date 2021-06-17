@@ -1,0 +1,157 @@
+{
+  "StartAt": "Generate dataset",
+  "States": {
+    "Generate dataset": {
+      "Resource": "arn:aws-cn:lambda:cn-north-1:xxxxxxxxx:function:SageMaker-DeepAR-Generate-Dataset",
+      "Type": "Task",
+      "Next": "Train Step",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "ML Workflow failed"
+        }
+      ]
+    },
+    "Train Step": {
+      "Resource": "arn:aws-cn:states:::sagemaker:createTrainingJob.sync",
+      "Parameters": {
+        "AlgorithmSpecification": {
+          "TrainingImage": "390948362332.dkr.ecr.cn-north-1.amazonaws.com.cn/forecasting-deepar:1",
+          "TrainingInputMode": "File"
+        },
+        "OutputDataConfig": {
+          "S3OutputPath.$": "$.body.output"
+        },
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 86400
+        },
+        "ResourceConfig": {
+          "InstanceCount": 1,
+          "InstanceType": "ml.c5.2xlarge",
+          "VolumeSizeInGB": 30
+        },
+        "RoleArn": "arn:aws-cn:iam::xxxxxxxxxx:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
+        "InputDataConfig": [
+          {
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri.$": "$.body.train",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            },
+            "ChannelName": "train"
+          },
+          {
+            "DataSource": {
+              "S3DataSource": {
+                "S3DataType": "S3Prefix",
+                "S3Uri.$": "$.body.test",
+                "S3DataDistributionType": "FullyReplicated"
+              }
+            },
+            "ChannelName": "test"
+          }
+        ],
+        "HyperParameters": {
+          "time_freq": "1H",
+          "epochs": "4",
+          "early_stopping_patience": "40",
+          "mini_batch_size": "256",
+          "learning_rate": "1E-3",
+          "context_length": "672",
+          "prediction_length": "168"
+        },
+        "TrainingJobName.$": "$.body.jobname"
+      },
+      "Type": "Task",
+      "ResultPath": "$.taskresult",
+      "Next": "Save model",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "ML Workflow failed"
+        }
+      ]
+    },
+    "Save model": {
+      "Parameters": {
+        "ExecutionRoleArn": "arn:aws-cn:iam::xxxxxxxxxx:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
+        "ModelName.$": "$.body.modelname",
+        "PrimaryContainer": {
+          "Environment": {},
+          "Image": "390948362332.dkr.ecr.cn-north-1.amazonaws.com.cn/forecasting-deepar:1",
+          "ModelDataUrl.$": "$['taskresult']['ModelArtifacts']['S3ModelArtifacts']"
+        }
+      },
+      "Resource": "arn:aws-cn:states:::sagemaker:createModel",
+      "Type": "Task",
+      "ResultPath": "$.taskresult",
+      "Next": "Transform Input Dataset",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "ML Workflow failed"
+        }
+      ]
+    },
+    "Transform Input Dataset": {
+      "Resource": "arn:aws-cn:states:::sagemaker:createTransformJob.sync",
+      "Parameters": {
+        "TransformJobName.$": "$.body.jobname",
+        "ModelName.$": "$.body.modelname",
+        "TransformInput": {
+          "DataSource": {
+            "S3DataSource": {
+              "S3DataType": "S3Prefix",
+              "S3Uri.$": "$.body.test"
+            }
+          },
+          "SplitType": "Line"
+        },
+        "TransformOutput": {
+          "S3OutputPath.$": "$.body.output",
+          "AssembleWith": "Line"
+        },
+        "TransformResources": {
+          "InstanceCount": 1,
+          "InstanceType": "ml.m5.xlarge"
+        },
+        "BatchStrategy": "SingleRecord"
+      },
+      "Type": "Task",
+      "Next": "Output dataset",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "ML Workflow failed"
+        }
+      ]
+    },
+    "Output dataset": {
+      "Resource": "arn:aws-cn:lambda:cn-north-1:xxxxxxxxx:function:SageMaker-DeepAR-Output-Dataset",
+      "Type": "Task",
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "ML Workflow failed"
+        }
+      ]
+    },
+    "ML Workflow failed": {
+      "Cause": "SageMakerProcessingJobFailed",
+      "Type": "Fail"
+    }
+  }
+}

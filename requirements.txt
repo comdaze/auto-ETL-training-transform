@@ -1,0 +1,6 @@
+pandas
+openpyxl
+fsspec
+s3fs
+sagemaker
+pymysql

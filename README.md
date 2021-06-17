@@ -1,61 +1,43 @@
-# auto-ETL-training-transform
 # 自动化ETL，训练，推理
 
 ## 架构图 
 
-![架构图](https://github.com/comdaze/auto-ETL-training-transform/blob/74c35722e5733a09e6a7e16927d06a44d99abeaa/image%20(1).png)
+![架构图](https://github.com/comdaze/auto-ETL-training-transform/blob/74c35722e5733a09e6a7e16927d06a44d99abeaa/architechture.png)
 ## 1.Glue的设置
 
 ### 添加连接 
 
-添加JDBC MySQL数据库连接：进入Glue服务，选择连接-添加连接
-[Image: image.png]进入连接向导，设置连接属性：连接名称，连接类型选择JDBC
-[Image: image.png]设置JDBC数据库连接访问属性
-[Image: image.png]预览设置，点击完成
+a.添加JDBC MySQL数据库连接：进入Glue服务，选择连接-添加连接
+b.进入连接向导，设置连接属性：连接名称，连接类型选择JDBC
+c.设置JDBC数据库连接访问属性
+d.预览设置，点击完成
 
-[Image: image.png]
 
 
 ### 添加爬网程序
 
-[Image: image.png][Image: image.png]
-[Image: image.png]添加数据存储，选择JDBC，和上一步创建好的连接
-[Image: image.png]
-[Image: image.png]
+a.添加数据存储，选择JDBC，和上一步创建好的连接
+b.设置完成后运行爬网程序.
 
-
-[Image: image.png]
-[Image: image.png]
-[Image: image.png]
-
-
-[Image: image.png]设置完成后运行爬网程序：
-[Image: image.png]
 ### 查看数据库和表
 
-正常执行完爬网程序后，在表，可以看到爬的表
-[Image: image.png]点击这个表，编辑架构，修改数据类型
-[Image: image.png]编辑架构：
-[Image: image.png]
+a.正常执行完爬网程序后，在表，可以看到爬的表
+b.点击这个表，编辑架构，修改数据类型-编辑架构
 
 
 ### 添加作业
 
-[Image: image.png][Image: image.png]
+a.选择一个数据目标：在数据目标中创建表，数据存储选择Amazon S3，格式CSV，设定目标路径为一个S3的路径
+b.数据架构定义，根据情况修改
+c.添加触发器。
+d.设置触发器属性，按计划，注意时间是UTC时间，本地时间为UTC+8小时
+e.选择要触发的作业。
 
-[Image: image.png]
-[Image: image.png]选择一个数据目标：在数据目标中创建表，数据存储选择Amazon S3，格式CSV，设定目标路径为一个S3的路径
-[Image: image.png]数据架构定义，根据情况修改
-[Image: image.png]添加触发器：
-[Image: image.png]
-设置触发器属性，按计划，注意时间是UTC时间，本地时间为UTC+8小时
-[Image: image.png]选择要触发的作业：
-[Image: image.png]
 ## 2.设置Step Functions
 
-创建状态机：
-[Image: image.png]定义状态机：选择使用代码段创作，标准类型
-[Image: image.png]按照如下json代码，进行定义：
+a.创建状态机.
+b.定义状态机：选择使用代码段创作，标准类型
+c.按照如下json代码，进行定义：
 
 ```
 {
@@ -217,10 +199,8 @@
 }
 ```
 
-自动生成流程图：
-[Image: image.png]
-指定详细信息：
-[Image: image.png]按照如下策略创建角色：
+会自动自动生成流程图指定详细信息.
+按照如下策略创建角色：
 
 ```
 {
@@ -296,7 +276,6 @@
 
 ## 3.设置EventBridge规则
 
-[Image: image.png][Image: image.png]
 定义模式：选择事件模式，事件匹配模式选择自定义模式，并且编辑事件模式：
 
 ```
@@ -319,18 +298,15 @@
 ```
 
 选择目标：Step Function状态机，然后点击创建
-[Image: image.png]
 
-## 4.设置Amazon Secrets Manager，存储MySQL的密匙信息：
 
-[Image: image.png][Image: image.png]
+## 4.设置Amazon Secrets Manager，
+添加存储MySQL的密匙信息
 
-[Image: image.png]
-[Image: image.png]
-[Image: image.png]
+
 ## 5.创建Lambda函数
 
-生成Lambda的层的软件依赖包
+a.生成Lambda的层的软件依赖包
 
 ```
 vi requirements.txt
@@ -347,13 +323,13 @@ zip -q -r Pandas.zip python
 aws s3 cp Pandas.zip s3://sagemaker-cn-north-1-456370280007/sagemaker/goldwind/
 ```
 
-创建层
-[Image: image.png]配置层，填写从S3上传的路径，和运行时：
-[Image: image.png]
-创建两个Lambda函数：SageMaker-DeepAR-Generate-Dataset和SageMaker-DeepAR-Output-Dataset
-[Image: image.png]
-设置Lambda函数：
-[Image: image.png]粘贴如下代码到SageMaker-DeepAR-Generate-Dataset 函数
+b.创建层
+配置层，填写从S3上传的路径，和运行时.
+
+c.创建两个Lambda函数：SageMaker-DeepAR-Generate-Dataset和SageMaker-DeepAR-Output-Dataset
+
+d.设置Lambda函数：
+粘贴如下代码到SageMaker-DeepAR-Generate-Dataset函数
 
 ```
 import boto3
@@ -388,7 +364,7 @@ def copy_to_s3(local_file, s3_path, override=False):
         buk.put_object(Key=path, Body=data)
 def lambda_handler(event, context):
     
-    bucket_name = 'sagemaker-cn-north-1-456370280007' #改为自己的存储桶
+    bucket_name = 'sagemaker-cn-north-1-xxxxxxxx' #改为自己的存储桶
     base_key = 'sagemaker/goldwind/step-function/{}/'.format(datetime.datetime.now().strftime('%Y-%m-%d')) #改为自己的前缀，保留datetime部分
     s3_data_path = "s3://{}/{}".format(bucket_name, base_key)
     
@@ -435,7 +411,7 @@ import pymysql
 
 def lambda_handler(event, context):
     s3 = boto3.resource('s3')
-    bucket_name = 'sagemaker-cn-north-1-456370280007' 
+    bucket_name = 'sagemaker-cn-north-1-xxxxxxxxx' 
     base_key = 'sagemaker/goldwind/step-function/{}/'.format(datetime.datetime.now().strftime('%Y-%m-%d')) 
     output_file = base_key+'output/test_1H.json.out'
    
@@ -477,8 +453,6 @@ def lambda_handler(event, context):
 
 ```
 
-设置内存和超时：
-[Image: image.png]权限 ：Lambda执行角色需要：添加EC2 NetworkInterface相关权限，SecretsManager读权限和基本Lamda基本执行权限
-[Image: image.png]权限设定参考
-[Image: image.png]VPC设置：
-[Image: image.png]
+e.设置内存和超时.
+f.设置权限Lambda执行角色需要添加EC2 NetworkInterface相关权限，SecretsManager读权限和基本Lamda基本执行权限
+g.根据情况进行VPC设置
