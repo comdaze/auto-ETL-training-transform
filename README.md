@@ -64,7 +64,7 @@ c.按照如下json代码，进行定义：
   "StartAt": "Generate dataset",
   "States": {
     "Generate dataset": {
-      "Resource": "arn:aws-cn:lambda:cn-north-1:456370280007:function:SageMaker-DeepAR-Generate-Dataset",
+      "Resource": "arn:aws-cn:lambda:cn-north-1:xxxxxxxxx:function:SageMaker-DeepAR-Generate-Dataset",
       "Type": "Task",
       "Next": "Train Step",
       "Catch": [
@@ -94,7 +94,7 @@ c.按照如下json代码，进行定义：
           "InstanceType": "ml.c5.2xlarge",
           "VolumeSizeInGB": 30
         },
-        "RoleArn": "arn:aws-cn:iam::456370280007:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
+        "RoleArn": "arn:aws-cn:iam::xxxxxxxxxx:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
         "InputDataConfig": [
           {
             "DataSource": {
@@ -142,7 +142,7 @@ c.按照如下json代码，进行定义：
     },
     "Save model": {
       "Parameters": {
-        "ExecutionRoleArn": "arn:aws-cn:iam::456370280007:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
+        "ExecutionRoleArn": "arn:aws-cn:iam::xxxxxxxxxx:role/service-role/AmazonSageMaker-ExecutionRole-20200604T105569",
         "ModelName.$": "$.body.modelname",
         "PrimaryContainer": {
           "Environment": {},
@@ -199,7 +199,7 @@ c.按照如下json代码，进行定义：
       ]
     },
     "Output dataset": {
-      "Resource": "arn:aws-cn:lambda:cn-north-1:456370280007:function:SageMaker-DeepAR-Output-Dataset",
+      "Resource": "arn:aws-cn:lambda:cn-north-1:xxxxxxxx:function:SageMaker-DeepAR-Output-Dataset",
       "Type": "Task",
       "End": true,
       "Catch": [
@@ -345,7 +345,7 @@ pymysql
               
 pip3 install -r requirements.txt --target python -i https://opentuna.cn/pypi/web/simple/
 zip -q -r Pandas.zip python
-aws s3 cp Pandas.zip s3://sagemaker-cn-north-1-456370280007/sagemaker/goldwind/
+aws s3 cp Pandas.zip s3://sagemaker-cn-north-1-xxxxxxxxxxx/sagemaker/goldwind/
 ```
 
 b.创建层
